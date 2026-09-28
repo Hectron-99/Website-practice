@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iya Basira's Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F1E4; --ink: #2A2016; --ink-soft: #6B5D4B;
+    --gold: #B4791F; --gold-deep: #8F5F16; --forest: #2F4B3C;
+    --line: #DED2B8; --card: #FFFDF7;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Work Sans",sans-serif; line-height:1.5; }
+  .wrap { max-width:640px; margin:0 auto; padding:0 20px 60px; }
+  header { padding:48px 20px 32px; border-bottom:1px solid var(--line); }
+  .eyebrow-free-tag { color:var(--gold-deep); font-family:"Fraunces",serif; font-style:italic; font-size:.95rem; margin:0 0 6px; }
+  h1 { font-family:"Fraunces",serif; font-weight:600; font-size:clamp(2.1rem,7vw,2.8rem); margin:0 0 10px; }
+  header p { color:var(--ink-soft); max-width:46ch; margin:0; }
+  section { padding:32px 0; }
+  h2 { font-family:"Fraunces",serif; font-size:1.3rem; font-weight:600; margin:0 0 18px; }
+  .item { display:grid; grid-template-columns:1fr auto; gap:4px 16px; padding:16px 0; border-bottom:1px solid var(--line); align-items:center; }
+  .item:last-child { border-bottom:none; }
+  .item-name { font-weight:500; }
+  .item-desc,.item-price { color:var(--ink-soft); font-size:.88rem; grid-column:1; }
+  .qty { grid-row:1/3; grid-column:2; display:flex; align-items:center; gap:10px; }
+  .qty button { width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:1.1rem; }
+  .qty span { min-width:1.2ch; text-align:center; }
+  .summary { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px; }
+  .summary-row { display:flex; justify-content:space-between; font-size:.92rem; padding:6px 0; color:var(--ink-soft); }
+  .summary-total { display:flex; justify-content:space-between; font-family:"Fraunces",serif; font-size:1.4rem; font-weight:600; padding-top:14px; margin-top:8px; border-top:1px solid var(--line); }
+  .pay-box { margin-top:20px; padding:16px; background:var(--forest); color:#FBF8F0; border-radius:8px; font-size:.92rem; }
+  .pay-box strong { display:block; font-size:1.05rem; margin-bottom:2px; }
+  .pay-box .acct { font-weight:600; font-size:1.1rem; margin-top:6px; }
+  .cta { display:block; width:100%; text-align:center; text-decoration:none; margin-top:18px; padding:16px; border-radius:8px; background:var(--gold); color:#241A0B; font-weight:600; }
+  .empty { color:var(--ink-soft); font-size:.9rem; }
+  footer { padding-top:30px; color:var(--ink-soft); font-size:.8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow-free-tag">Home-style Nigerian cooking</p>
+    <h1>Iya Basira's Kitchen</h1>
+    <p>Jollof, swallow, and soup made the way your grandmother would approve of. Pick your plate below, confirm on WhatsApp, and it's on the way.</p>
+  </header>
+  <section>
+    <h2>Menu</h2>
+    <div id="menu"></div>
+  </section>
+  <section>
+    <h2>Your order</h2>
+    <div class="summary">
+      <div id="summary-lines"><p class="empty">Nothing added yet — pick a plate above.</p></div>
+      <div class="summary-total"><span>Total</span><span id="total">₦0</span></div>
+      <div class="pay-box">
+        <strong>Pay to confirm your order</strong>
+        Zenith Bank · 0123 456 789 · Iya Basira Foods
+        <div class="acct" id="acct-total"></div>
+      </div>
+      <a class="cta" id="whatsapp-btn" href="#" target="_blank" rel="noopener">Send order on WhatsApp</a>
+    </div>
+  </section>
+  <footer>Demo built to show how a real order flow can work.</footer>
+</div>
+<script>
+  const items = [
+    { id:'jollof', name:'Party Jollof Rice', desc:'With fried plantain and a piece of chicken', price:3500 },
+    { id:'egusi', name:'Egusi Soup & Pounded Yam', desc:'Melon seed soup, generous stock', price:4000 },
+    { id:'suya', name:'Beef Suya (10 sticks)', desc:'Grilled and spiced, wrapped fresh', price:4500 },
+    { id:'moimoi', name:'Moi Moi', desc:'Steamed bean pudding, single wrap', price:1200 },
+    { id:'zobo', name:'Chilled Zobo Drink', desc:'50cl bottle', price:800 },
+  ];
+  const qty = Object.fromEntries(items.map(i => [i.id, 0]));
+  const naira = n => '₦' + n.toLocaleString('en-NG');
+  const phone = '2348012345678';
+  const menuEl = document.getElementById('menu');
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <div class="item-name">${item.name}</div>
+      <div class="qty">
+        <button data-id="${item.id}" data-dir="-1">−</button>
+        <span id="qty-${item.id}">0</span>
+        <button data-id="${item.id}" data-dir="1">+</button>
+      </div>
+      <div class="item-desc">${item.desc}</div>
+      <div class="item-price">${naira(item.price)}</div>
+    `;
+    menuEl.appendChild(row);
+  });
+  menuEl.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    qty[id] = Math.max(0, qty[id] + parseInt(btn.dataset.dir, 10));
+    document.getElementById(`qty-${id}`).textContent = qty[id];
+    render();
+  });
+  function render() {
+    const chosen = items.filter(i => qty[i.id] > 0);
+    const summaryEl = document.getElementById('summary-lines');
+    const total = chosen.reduce((sum, i) => sum + i.price * qty[i.id], 0);
+    summaryEl.innerHTML = chosen.length === 0
+      ? '<p class="empty">Nothing added yet — pick a plate above.</p>'
+      : chosen.map(i => `<div class="summary-row"><span>${i.name} × ${qty[i.id]}</span><span>${naira(i.price * qty[i.id])}</span></div>`).join('');
+    document.getElementById('total').textContent = naira(total);
+    document.getElementById('acct-total').textContent = chosen.length ? `Amount to send: ${naira(total)}` : '';
+    const lines = chosen.map(i => `${i.name} x${qty[i.id]} - ${naira(i.price * qty[i.id])}`).join('%0A');
+    const message = chosen.length ? `Hello! I'd like to order:%0A${lines}%0A%0ATotal: ${naira(total)}` : `Hello! I'd like to place an order.`;
+    document.getElementById('whatsapp-btn').href = `https://wa.me/${phone}?text=${message}`;
+  }
+  render();
+</script>
+</body>
+</html>
